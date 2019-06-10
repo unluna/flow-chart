@@ -1,0 +1,18 @@
+
+#canvas-div{
+    width: 1120px;
+    height: 1000px;
+    overflow: hidden;
+    margin: 0 auto;
+    /* background: #000; */
+    /* position: relative; */
+    /* position: absolute; */
+}
+
+#canvas{
+    background: red;
+    position: relative;
+    z-index: 999;
+    /* left: -1880px; */
+    /* top:-2000px; */
+}

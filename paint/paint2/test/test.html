@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Canvas Scatterplot</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="http://d3js.org/d3.v4.js"></script>
+    <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+    <script src="https://d3js.org/d3-scale.v1.min.js"></script>
+
+    <style type="text/css">
+        .hiddenCanvas {
+            display: none;
+        }
+
+        div#tooltip {
+            position: absolute;
+            display: inline-block;
+            padding: 10px;
+            font-family: 'Open Sans'sans-serif;
+            color: #000;
+            background-color: #fff;
+            border: 1px solid #999;
+            border-radius: 2px;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 1;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="container"></div>
+    <div id="tooltip"></div>
+
+    <script type="text/javascript">
+        var data = [];
+        d3.range(20000).forEach(function (el) {
+            data.push({ x: d3.randomNormal(5, 3)(), y: d3.randomNormal(5, 3)(), r: d3.randomNormal(3, 1)() });
+        });
+        console.log(data);
+
+        var width = 1400,
+            height = 750;
+
+        // main canvas
+        var mainCanvas = d3.select('#container')
+            .append('canvas')
+            .classed('mainCanvas', true)
+            .attr('width', width)
+            .attr('height', height);
+
+
+
+        // hidden canvas
+        var hiddenCanvas = d3.select('#container')
+            .append('canvas')
+            .classed('hiddenCanvas', true)
+            .attr('width', width)
+            .attr('height', height);
+
+        var customBase = document.createElement('custom');
+        var custom = d3.select(customBase); // replacement of SVG
+
+        // map to track color the nodes.
+        var colorToNode = {};
+        // function to create new colors for picking
+        var nextCol = 1;
+        function genColor() {
+            var ret = [];
+            if (nextCol < 16777215) {
+                ret.push(nextCol & 0xff); //R
+                ret.push((nextCol & 0xff00) >> 8); //G
+                ret.push((nextCol & 0xff0000) >> 16); //B
+
+                nextCol += 1;
+            }
+            var col = "rgb(" + ret.join(',') + ")";
+            return col;
+        }
+
+
+
+        var x = d3.scaleLinear()
+            .domain([2, 8])
+            .range([0, width]);
+
+        var y = d3.scaleLinear()
+            .domain([2, 8])
+            .range([height, 0]);
+
+        databind(data, x, y);
+        var t = d3.timer(function (elapsed) {
+            draw(mainCanvas, false);
+            if (elapsed > 300) t.stop();
+            // timer running the draw function repeatedly for 300ms.
+        });
+
+
+        function databind(data, x, y) {
+            var join = custom.selectAll('custon.circle')
+                .data(data);
+
+
+            var enterSel = join.enter()
+                .append('custom')
+                .attr('class', 'circle')
+                .attr('x', function (d, i) {
+                    return x(d.x);
+                })
+                .attr('y', function (d, i) {
+                    return y(d.y);
+                })
+                .attr('r', function (d, i) {
+                    return Math.abs(d.r);
+                });
+
+            join
+                .merge(enterSel)
+                .transition()
+                .attr('fillStyleHidden', function (d) {
+                    if (!d.hiddenCol) {
+                        d.hiddenCol = genColor();
+                        colorToNode[d.hiddenCol] = d;
+                    }
+                    return d.hiddenCol;
+                });
+
+        }
+
+        function draw(canvas, hidden) {
+            var context = canvas.node().getContext('2d');
+
+            context.clearRect(0, 0, width, height);
+
+            var elements = custom.selectAll('custom.circle');
+            elements.each(function (d, i) {
+                var node = d3.select(this);
+                context.fillStyle = hidden ? node.attr('fillStyleHidden') : 'steelblue';
+                context.beginPath();
+                context.arc(node.attr('x'), node.attr('y'), node.attr('r'), 0, 2 * Math.PI);
+                context.fill();
+            })
+        }
+
+        d3.select('.mainCanvas').on('mousemove', function () {
+            draw(hiddenCanvas, true);
+            var mouseX = d3.event.layerX || d3.event.offsetX;
+            var mouseY = d3.event.layerY || d3.event.offsety;
+
+            var hiddenCtx = hiddenCanvas.node().getContext('2d');
+            var col = hiddenCtx.getImageData(mouseX, mouseY, 1, 1).data;
+
+            var colKey = 'rgb(' + col[0] + ',' + col[1] + ',' + col[2] + ')';
+            var nodeData = colorToNode[colKey];
+
+            if (nodeData) {
+                console.log(nodeData);
+                d3.select('#tooltip')
+                    .style('opacity', 0.8)
+                    .style('top', d3.event.pageY + 5 + 'px')
+                    .style('left', d3.event.pageX + 5 + 'px')
+                    .html('x: ' + nodeData.x + '<br>' + 'y: ' + nodeData.y + '<br>' + 'radius: ' + nodeData.r);
+            } else {
+                d3.select('#tooltip')
+                    .style('opacity', 0);
+            }
+
+        })
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,28 @@
+
+#svg-div {
+    width: 1120px;
+    height: 1000px;
+    overflow: hidden;
+    margin: 0 auto;
+    /* background: #000; */
+    /* position: relative; */
+    /* position: absolute; */
+}
+#svg {
+    background: #fff;
+    position: relative;
+    z-index: 999;
+    /* left: -1880px; */
+    /* top:-2000px; */
+}
+p {
+    height: 100px;
+    text-align: center;
+    font-size: 30px;
+    line-height: 100px;
+    color: #fff;
+}
+body {
+    background-color: #188eee;
+}
+/* 控制台输入  isYes = true; / isYes = false 切换线的出口; */
