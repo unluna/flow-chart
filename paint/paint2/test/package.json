@@ -4,7 +4,7 @@
   "description": "这是一个测试文件",
   "main": "index.js",
   "dependencies": {
-    "karma": "^4.1.0",
+    "karma": "^6.4.1",
     "karma-phantomjs-launcher": "^1.0.4"
   },
   "devDependencies": {
